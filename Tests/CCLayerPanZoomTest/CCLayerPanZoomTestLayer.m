@@ -49,6 +49,7 @@ static NSString *tests[] = {
     @"CCLayerPanZoomSimpleSheetTestLayer",
     @"CCLayerPanZoomAdvancedSheetTestLayer",
     @"CCLayerPanZoomFrameTestLayer",
+    @"CCLayerPanZoomAdvancedSheetTestLayerConsume"
 };
 
 Class nextTest()
@@ -292,6 +293,145 @@ Class backTest()
     _panZoomLayer.minScale = 0.5f * _panZoomLayer.panBoundsRect.size.width  / boundingRect.size.width;
 }
 
+@end
+
+#pragma mark -
+#pragma mark Advanced sheet test consume
+
+@implementation CCLayerPanZoomAdvancedSheetTestLayerConsume
+
+- (id) init
+{
+	if ((self = [super init])) 
+    {
+        _panZoomLayer = [[CCLayerPanZoom node] retain];
+        [self addChild: _panZoomLayer];
+		_panZoomLayer.delegate = self; 
+        
+        // background
+        CCSprite *background = [CCSprite spriteWithFile: @"background.png"];
+        background.anchorPoint = ccp(0,0);
+		background.scale = CC_CONTENT_SCALE_FACTOR();
+        [_panZoomLayer addChild: background 
+                             z :0 
+                            tag: kBackgroundTag];
+		// create and initialize a Label
+		CCLabelTTF *label = [CCLabelTTF labelWithString: @"Try panning and zooming using drag and pinch. Also try moving objects." 
+                                               fontName: @"Marker Felt" 
+                                               fontSize: 24];
+		label.scale = 0.7f; //< to be visible on iPod Touch screen.
+		label.color = ccWHITE;
+		// add the label as a child to this Layer
+		[_panZoomLayer addChild: label 
+                              z: 1 
+                            tag: kLabelTag];
+        _panZoomLayer.mode = kCCLayerPanZoomModeSheet;
+        
+        // Add test objects.
+        CCSprite *testObject1 = [CCSprite spriteWithFile: @"Icon-72.png"];
+		[_panZoomLayer addChild: testObject1 
+                              z: 1 
+                            tag: kTestObject1];
+        
+        CCSprite *testObject2 = [CCSprite spriteWithFile: @"Icon-72.png"];
+		[_panZoomLayer addChild: testObject2 
+                              z: 1 
+                            tag: kTestObject2];
+        
+        CCSprite *testObject3 = [CCSprite spriteWithFile: @"Icon-72.png"];
+		[_panZoomLayer addChild: testObject3 
+                              z: 1 
+                            tag: kTestObject3];
+        
+		[self updateForScreenReshape];
+	}
+	
+	return self;
+	
+}
+
+- (NSString *) title
+{
+	return @"Test 4. Sheet (Special consume).";
+}
+
+- (void) updateForScreenReshape
+{
+	CGSize winSize = [[CCDirector sharedDirector] winSize];
+	CCNode *background = [_panZoomLayer getChildByTag: kBackgroundTag];
+	// our bounding rect
+	CGRect boundingRect = CGRectMake(0, 0, 0, 0);
+	boundingRect.size = [background boundingBox].size;
+	[_panZoomLayer setContentSize: boundingRect.size];
+    
+	_panZoomLayer.anchorPoint = ccp(0.5f, 0.5f);
+	_panZoomLayer.position = ccp(0.5f * winSize.width, 0.5f * winSize.height);
+    
+    _panZoomLayer.panBoundsRect = CGRectMake(0, 0, winSize.width, winSize.height);
+    
+	// position the label on the center of the bounds
+	CCNode *label = [_panZoomLayer getChildByTag: kLabelTag];
+	label.position =  ccp(boundingRect.size.width * 0.5f, boundingRect.size.height * 0.5f);
+    
+    // Position test objects in the center.
+    CCNode *testObject = [_panZoomLayer getChildByTag: kTestObject1];
+	testObject.position =  ccp(boundingRect.size.width * 0.6f, boundingRect.size.height * 0.5f - 56);
+    
+    CCNode *testObject2 = [_panZoomLayer getChildByTag: kTestObject2];
+	testObject2.position =  ccp(boundingRect.size.width * 0.5f, boundingRect.size.height * 0.5f - 56);
+    
+    CCNode *testObject3 = [_panZoomLayer getChildByTag: kTestObject3];
+	testObject3.position =  ccp(boundingRect.size.width * 0.4f, boundingRect.size.height * 0.5f - 56);
+    
+    // Allow panZoomLayer's contents occupy half of the screen.
+    _panZoomLayer.minScale = 0.5f * _panZoomLayer.panBoundsRect.size.width  / boundingRect.size.width;
+}
+-(BOOL)layerPanZoom:(CCLayerPanZoom *)sender 
+       touchesBegan:(NSSet *)touches
+          withEvent:(UIEvent *)event{
+    _selectedTestObject = nil;
+    if (touches.count!=1) {
+        return YES;
+    }
+    UITouch* touch = [touches anyObject];
+    CGPoint touchPosition = [[CCDirector sharedDirector] convertToGL: [touch previousLocationInView: [touch view]]];
+    CGPoint point = [sender convertToNodeSpace: touchPosition];
+    CCSprite *testObject1 = (CCSprite *)[_panZoomLayer getChildByTag: kTestObject1];
+    CCSprite *testObject2 = (CCSprite *)[_panZoomLayer getChildByTag: kTestObject2];
+    CCSprite *testObject3 = (CCSprite *)[_panZoomLayer getChildByTag: kTestObject3];
+    
+    
+    // Select new test object.
+    if ( CGRectContainsPoint( [testObject1 boundingBox], point))
+    {
+        _selectedTestObject = testObject1;
+        return NO;
+    }
+    
+    if ( CGRectContainsPoint( [testObject2 boundingBox], point))
+    {
+        _selectedTestObject = testObject2;
+        return NO;
+    }
+    
+    if ( CGRectContainsPoint( [testObject3 boundingBox], point))
+    {
+        _selectedTestObject = testObject3;
+        return NO;
+    }
+    
+    return YES;
+}
+-(void) layerPanZoom:(CCLayerPanZoom *) sender 
+        touchesMoved:(NSSet *) touches 
+           withEvent:(UIEvent *) event{
+    if (_selectedTestObject){
+        UITouch* touch = [touches anyObject];
+        CGPoint touchPosition = [[CCDirector sharedDirector] convertToGL: [touch previousLocationInView: [touch view]]];
+        CGPoint point = [sender convertToNodeSpace: touchPosition];
+        _selectedTestObject.position = point;
+    }
+}
 @end
 
 #pragma mark -

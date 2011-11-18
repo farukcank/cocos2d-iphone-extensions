@@ -211,6 +211,9 @@ typedef enum
 - (void) ccTouchesBegan: (NSSet *) touches 
 			  withEvent: (UIEvent *) event
 {	
+    consumeTouches = [_delegate respondsToSelector:@selector(layerPanZoom:touchesBegan:withEvent:)]?[_delegate layerPanZoom:self touchesBegan:touches withEvent:event]:true;
+    if (!consumeTouches)
+        return;
 	for (UITouch *touch in [touches allObjects]) 
 	{
 		// Add new touche to the array with current touches
@@ -229,6 +232,11 @@ typedef enum
 - (void) ccTouchesMoved: (NSSet *) touches 
 			  withEvent: (UIEvent *) event
 {
+    if (!consumeTouches){
+        if ([_delegate respondsToSelector:@selector(layerPanZoom:touchesMoved:withEvent:)])
+            [_delegate layerPanZoom:self touchesMoved:touches withEvent:event];
+        return;
+    }
 	BOOL multitouch = [self.touches count] > 1;
 	if (multitouch)
 	{
@@ -308,6 +316,11 @@ typedef enum
 - (void) ccTouchesEnded: (NSSet *) touches 
 			  withEvent: (UIEvent *) event
 {
+    if (!consumeTouches){
+        if ([_delegate respondsToSelector:@selector(layerPanZoom:touchesEnd:withEvent:)])
+            [_delegate layerPanZoom:self touchesEnd:touches withEvent:event];
+        return;
+    }
     _singleTouchTimestamp = INFINITY;
     
     // Process click event in single touch.
@@ -340,6 +353,11 @@ typedef enum
 - (void) ccTouchesCancelled: (NSSet *) touches 
 				  withEvent: (UIEvent *) event
 {
+    if (!consumeTouches){
+        if ([_delegate respondsToSelector:@selector(layerPanZoom:touchesCancelled:withEvent:)])
+            [_delegate layerPanZoom:self touchesCancelled:touches withEvent:event];
+        return;
+    }
 	for (UITouch *touch in [touches allObjects]) 
 	{
 		// Remove touche from the array with current touches

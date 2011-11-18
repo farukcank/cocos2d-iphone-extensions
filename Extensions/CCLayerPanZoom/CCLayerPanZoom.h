@@ -58,6 +58,19 @@ typedef enum
  * This means that click event is not possible with that touch from now. */
 - (void) layerPanZoom: (CCLayerPanZoom *) sender touchMoveBeganAtPosition: (CGPoint) aPoint;
 
+@optional
+- (BOOL) layerPanZoom: (CCLayerPanZoom *) sender 
+         touchesBegan: (NSSet *) touches 
+            withEvent: (UIEvent *) event;
+-(void) layerPanZoom:(CCLayerPanZoom *) sender 
+        touchesMoved:(NSSet *) touches 
+           withEvent:(UIEvent *) event;
+-(void) layerPanZoom:(CCLayerPanZoom *) sender 
+          touchesEnd:(NSSet *) touches 
+           withEvent:(UIEvent *) event;
+-(void) layerPanZoom:(CCLayerPanZoom *) sender 
+    touchesCancelled:(NSSet *) touches 
+           withEvent:(UIEvent *) event;
 @end
 
 
@@ -65,6 +78,7 @@ typedef enum
  * and zoomed with one or two fingers. */
 @interface CCLayerPanZoom : CCLayer 
 {
+    BOOL consumeTouches;
     CGFloat _maxScale;
     CGFloat _minScale;
 	NSMutableArray *_touches;
